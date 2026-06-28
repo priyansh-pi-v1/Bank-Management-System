@@ -3,7 +3,6 @@
 
 using namespace std;
 
-// Clears the terminal screen. Uses Windows command on Windows, Unix command on Linux/Mac.
 void pause() {
     cout << "\t\tPress Enter to continue...";
     cin.clear();
@@ -91,8 +90,11 @@ class BankManagement{
     private:
         vector<BankAccount> accounts;   // Stores all bank accounts in memory
     public:
-        // Creates and adds a new account. Returns false if account number already exists.
+        // Creates and adds a new account. Returns false if account number already exists or balance is invalid.
         bool addAccount(const string& name, int accountNumber, double balance, char accountType) {
+            if(balance <= 0) {
+                return false;
+            }
             // Reject duplicate account numbers
             if(findAccount(accountNumber) != nullptr) {
                 return false;
@@ -287,8 +289,16 @@ int main() {
                 cout << "\t\tEnter Initial Deposit  : ";
                 cin >> balance;
 
-                bank.addAccount(name, accountNumber, balance, accountType);
-                cout << "\t\tAccount opened successfully. Welcome aboard!" << endl;
+                if(balance <= 0) {
+                    cout << "\t\tInitial deposit must be greater than 0." << endl;
+                    break;
+                }
+
+                if(bank.addAccount(name, accountNumber, balance, accountType)) {
+                    cout << "\t\tAccount opened successfully. Welcome aboard!" << endl;
+                } else {
+                    cout << "\t\tAccount could not be created. Please check the details." << endl;
+                }
                 break;
             }
             case 2:{
