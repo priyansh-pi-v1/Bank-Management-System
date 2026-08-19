@@ -1,5 +1,5 @@
 #include<iostream>
-#include<vector>
+#include<unordered_map>
 
 using namespace std;
 
@@ -88,7 +88,7 @@ class BankAccount{
 // ============================================================
 class BankManagement{
     private:
-        vector<BankAccount> accounts;   // Stores all bank accounts in memory
+        unordered_map<int, BankAccount> accounts;   // Stores all bank accounts in memory
     public:
         // Creates and adds a new account. Returns false if account number already exists or balance is invalid.
         bool addAccount(const string& name, int accountNumber, double balance, char accountType) {
@@ -99,7 +99,7 @@ class BankManagement{
             if(findAccount(accountNumber) != nullptr) {
                 return false;
             }
-            accounts.push_back(BankAccount(name, accountNumber, balance, accountType));
+            accounts.emplace(accountNumber, BankAccount(name, accountNumber, balance, accountType));
             return true;
         }
 
@@ -111,11 +111,12 @@ class BankManagement{
             }
             cout << "\t\tAll Account Holders:" << endl;
             cout << "\t\t---------------------------" << endl;
-            for(int i = 0; i < accounts.size(); i++) {
-                cout << "\t\tName         : " << accounts[i].getName() << endl;
-                cout << "\t\tAccount No.  : " << accounts[i].getAccountNumber() << endl;
-                cout << "\t\tAccount Type : " << accounts[i].getAccountTypeStr() << endl;
-                cout << "\t\tBalance      : " << accounts[i].getBalance() << endl;
+            for(auto& entry : accounts) {
+                BankAccount& account = entry.second;
+                cout << "\t\tName         : " << account.getName() << endl;
+                cout << "\t\tAccount No.  : " << account.getAccountNumber() << endl;
+                cout << "\t\tAccount Type : " << account.getAccountTypeStr() << endl;
+                cout << "\t\tBalance      : " << account.getBalance() << endl;
                 cout << "\t\t---------------------------" << endl;
             }
         }
@@ -123,16 +124,15 @@ class BankManagement{
         // Searches for an account by number and prints its details.
         // Prints "Account Not Found" if no match exists.
         void searchAccount(int accountNumber) {
-            for(int i = 0; i < accounts.size(); i++) {
-                if(accounts[i].getAccountNumber() == accountNumber) {
-                    cout << "\t\t---------------------------" << endl;
-                    cout << "\t\tName         : " << accounts[i].getName() << endl;
-                    cout << "\t\tAccount No.  : " << accounts[i].getAccountNumber() << endl;
-                    cout << "\t\tAccount Type : " << accounts[i].getAccountTypeStr() << endl;
-                    cout << "\t\tBalance      : " << accounts[i].getBalance() << endl;
-                    cout << "\t\t---------------------------" << endl;
-                    return;
-                }
+            BankAccount* account = findAccount(accountNumber);
+            if(account) {
+                cout << "\t\t---------------------------" << endl;
+                cout << "\t\tName         : " << account->getName() << endl;
+                cout << "\t\tAccount No.  : " << account->getAccountNumber() << endl;
+                cout << "\t\tAccount Type : " << account->getAccountTypeStr() << endl;
+                cout << "\t\tBalance      : " << account->getBalance() << endl;
+                cout << "\t\t---------------------------" << endl;
+                return;
             }
             cout << "\t\tAccount Not Found!" << endl;
         }
@@ -140,10 +140,9 @@ class BankManagement{
         // Returns a pointer to the account with the given number, or nullptr if not found.
         // Used internally by other methods to avoid code duplication.
         BankAccount* findAccount(int accountNumber) {
-            for(int i = 0; i < accounts.size(); i++) {
-                if(accounts[i].getAccountNumber() == accountNumber) {
-                    return &accounts[i];
-                }
+            auto it = accounts.find(accountNumber);
+            if(it != accounts.end()) {
+                return &it->second;
             }
             return nullptr;
         }
@@ -151,13 +150,7 @@ class BankManagement{
         // Removes the account with the given number from the vector.
         // Returns true if deleted, false if account was not found.
         bool deleteAccount(int accountNumber) {
-            for(int i = 0; i < accounts.size(); i++) {
-                if(accounts[i].getAccountNumber() == accountNumber) {
-                    accounts.erase(accounts.begin() + i);
-                    return true;
-                }
-            }
-            return false;
+            return accounts.erase(accountNumber) != 0;
         }
 
         // Allows modifying the name and/or account type of an existing account.
